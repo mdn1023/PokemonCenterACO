@@ -114,40 +114,49 @@ func main() {
 	logger.Info("Successfully retrieved payment key ID!")
 	fmt.Println(paymentKeyID)
 
+	// TODO: Maybe remove, not sure if this is relevant. This request gets made every time when loading the payment submission page.
+	// TODO: Seems to be some kind of JWT token, but not the same one that is ultimately sent to generate the final payment url
+	logger.Info("Retrieving token...")
+	client.GetTokens(paymentKeyID)
+	// if err != nil {
+	// 	logger.Fatal("Error retrieving tokens", zap.Error(err))
+	// }
+	logger.Info("Successfully retrieved tokens!")
+
 	// TODO: Grab the payment token hidden through the source code javascript obfuscation
 	// TODO: All code below will not work until payment token can be retrieved
 
-	// Send the payment token, payment key ID, and payment info through 'GetSubmitPaymentURL' to get the final submit order URL
-	paymentInfo := models.PaymentInfo{
-		Name:             "John Doe",
-		CreditCardType:   "VISA",
-		CreditCardNumber: "4111111111111111",
-		Cvv:              "015",
-		ExpiryMonth:      "09",
-		ExpiryYear:       "2025",
-	}
+	// // Send the payment token, payment key ID, and payment info through 'GetSubmitPaymentURL' to get the final submit order URL
+	// paymentInfo := models.PaymentInfo{
+	// 	Name:             "John Doe",
+	// 	CreditCardType:   "VISA",
+	// 	CreditCardNumber: "4111111111111111",
+	// 	Cvv:              "015",
+	// 	ExpiryMonth:      "09",
+	// 	ExpiryYear:       "2025",
+	// }
 
-	body := models.PaymentURLRequest{
-		PaymentDisplay: fmt.Sprintf("%s %s/%s", paymentInfo.CreditCardType, paymentInfo.ExpiryMonth, paymentInfo.ExpiryYear),
-		PaymentKey:     paymentKeyID,
-		PaymentToken:   "FakePaymentToken - Received from above request",
-	}
+	// body := models.PaymentURLRequest{
+	// 	PaymentDisplay: fmt.Sprintf("%s %s/%s", paymentInfo.CreditCardType, paymentInfo.ExpiryMonth, paymentInfo.ExpiryYear),
+	// 	PaymentKey:     paymentKeyID,
+	// 	PaymentToken:   "FakePaymentToken - Received from above request",
+	// }
 
-	// Retrieve the submit order url
-	logger.Info("Retrieving submit order URL...")
-	url, err := client.GetSubmitOrderURL(body)
-	if err != nil {
-		logger.Fatal("Error retrieving submit order URL", zap.Error(err))
-	}
-	logger.Info("Successfully retrieved submit order URL!", zap.String("SubmitOrder URL: ", url))
+	// // Retrieve the submit order url
+	// logger.Info("Retrieving submit order URL...")
+	// url, err := client.GetSubmitOrderURL(body)
+	// if err != nil {
+	// 	logger.Fatal("Error retrieving submit order URL", zap.Error(err))
+	// }
+	// logger.Info("Successfully retrieved submit order URL!", zap.String("SubmitOrder URL: ", url))
 
-	// Submit the order!
-	logger.Info("Submitting order...")
-	orderID, err := client.SubmitOrder(url)
-	if err != nil {
-		logger.Fatal("Error submitting order :(", zap.Error(err))
-	}
-	logger.Info("YAY! Order successfully submitted!", zap.String("Order ID: ", orderID))
+	// // Submit the order!
+	// logger.Info("Submitting order...")
+	// orderID, err := client.SubmitOrder(url)
+	// if err != nil {
+	// 	logger.Fatal("Error submitting order :(", zap.Error(err))
+	// }
+	// logger.Info("YAY! Order successfully submitted!", zap.String("Order ID: ", orderID))
 }
 
 //{"purchaseForm":"/purchases/orders/pokemon/gbqtomdcmm3gcljymu4diljumy4wcllcgy4taljtgqydizjsgnstgndfgm=/form"}

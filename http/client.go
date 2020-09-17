@@ -13,6 +13,9 @@ import (
 )
 
 const (
+	PRODUCT_AVAILABLE   = "AVAILABLE"
+	PRODUCT_UNAVAILABLE = "NOT_AVAILABLE"
+
 	RequestTypeGET  = "GET"
 	RequestTypePOST = "POST"
 
@@ -20,7 +23,8 @@ const (
 	GetProductInfoURL   = "https://www.pokemoncenter.com/tpci-ecommweb-api/product?format=zoom.nodatalinks"
 	AtcURL              = "https://www.pokemoncenter.com/tpci-ecommweb-api/cart?type=product&format=zoom.nodatalinks"
 	SubmitProfileURL    = "https://www.pokemoncenter.com/tpci-ecommweb-api/address?format=zoom.nodatalinks"
-	GetPaymentKeyuRL    = "https://www.pokemoncenter.com/tpci-ecommweb-api/payment/key?microform=true&locale=en-US"
+	GetPaymentKeyURL    = "https://www.pokemoncenter.com/tpci-ecommweb-api/payment/key?microform=true&locale=en-US"
+	GetTokenURL         = "https://flex.cybersource.com/flex/v2/tokens"
 	GetSubmitPaymentURL = "https://www.pokemoncenter.com/tpci-ecommweb-api/payment?microform=true&format=zoom.nodatalinks"
 	SubmitOrderURL      = "https://www.pokemoncenter.com/tpci-ecommweb-api/order?format=zoom.nodatalinks"
 )
@@ -166,7 +170,7 @@ func (c *Client) SubmitBillingShippingInfo(profile models.Profile) error {
 }
 
 func (c *Client) GetPaymentKey() (string, error) {
-	req, err := c.createRequest(RequestTypeGET, GetPaymentKeyuRL, "", true)
+	req, err := c.createRequest(RequestTypeGET, GetPaymentKeyURL, "", true)
 	if err != nil {
 		c.logger.Error("GetPaymentKey - httpNewRequest", zap.Error(err))
 		return "", err
@@ -192,6 +196,28 @@ func (c *Client) GetPaymentKey() (string, error) {
 	}
 
 	return paymentKey.KeyID, nil
+}
+
+func (c *Client) GetTokens(key string) {
+	requestBody := fmt.Sprintf(`{"keyId":"%s"}`, key)
+	req, err := c.createRequest(RequestTypePOST, GetTokenURL, requestBody, true)
+	if err != nil {
+		c.logger.Error("GetTokens - httpNewRequest", zap.Error(err))
+		// return false, err
+	}
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		c.logger.Error("GetTokens - sendRequest", zap.Error(err))
+		// return false, err
+	}
+	bodyText, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		c.logger.Error("GetTokens - readResponseBody", zap.Error(err))
+		// return false, err
+	}
+
+	fmt.Println(string(bodyText))
 }
 
 func (c *Client) GetSubmitOrderURL(body models.PaymentURLRequest) (string, error) {
@@ -320,4 +346,17 @@ func convertPaymentLinkToOrderLink(url string) (string, error) {
 			suffixToAdd,
 		}, "",
 	), nil
+}
+
+func getStringInBetweenInclusive(str string, start string, end string) (result string) {
+	s := strings.Index(str, start)
+	if s == -1 {
+		return
+	}
+	s += len(start) - 1
+	e := strings.Index(str, end) + 1
+	if e == -1 {
+		return
+	}
+	return str[s:e]
 }
